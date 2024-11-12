@@ -1,0 +1,20 @@
+# Pull the Docker image for MCCS (only needed on the first run)
+docker pull stcmz/mccs 
+
+# Run the MCCS Docker container with the current directory mounted as /root/data
+docker run --rm -it -v "$(pwd):/root/data" stcmz/mccs
+
+# Navigate to the data directory (where your complex files are located)
+cd data
+
+# Ensure your complex is separated into two parts: antibody (ab.pdb) and antigen (ag.pdb)
+
+# Prepare the antibody and antigen files for MCCS:
+# Convert antibody PDB file to PDBQT format using VEGA, with VINA and Gasteiger charges
+vega ab.pdb -o ab.pdbqt -f VINA -c Gasteiger -p VINA -l GEN -r APOLAR -w && \
+
+# Convert antigen PDB file to PDBQT format using the same parameters
+vega ag.pdb -o ag.pdbqt -f VINA -c Gasteiger -p VINA -l GEN -r APOLAR -w
+
+# Perform docking with jdock in both orientations (ab as receptor and ag as ligand, and vice versa)
+jdock -r ab.pdbqt -l ag.pdbqt -o Result_ab -spa && jdock -r ag.pdbqt -l ab.pdbqt -o Result -spa
